@@ -66,8 +66,8 @@ pub fn main() anyerror!void {
             if ((touchPosition.x >= 0) and (touchPosition.y >= 0)) {
 
                 // Draw circle and touch index number
-                rl.drawCircleV(touchPosition, 34, rl.Color.orange);
-                rl.drawText(rl.textFormat("%d", .{i}), @floatToInt(c_int, touchPosition.x) - 10, @floatToInt(c_int, touchPosition.y) - 70, 40, rl.Color.black);
+                rl.DrawCircleV(touchPosition, 34, rl.ORANGE);
+                rl.DrawText(rl.TextFormat("%d", i), @as(c_int, @intFromFloat(touchPosition.x)) - 10, @as(c_int, @intFromFloat(touchPosition.y)) - 70, 40, rl.BLACK);
             }
         }
 

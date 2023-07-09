@@ -16,11 +16,11 @@ pub fn main() anyerror!void {
 
     const texture: rl.Texture = rl.Texture.init("resources/textures/fudesumi.png");
 
-    const shdrOutline: rl.Shader = rl.loadShader(null, "resources/shaders/glsl330/outline.fs");
+    const shdrOutline: rl.Shader = rl.LoadShader(0, rl.TextFormat("resources/shaders/glsl330/outline.fs", @as(c_int, @intCast(330))));
 
     var outlineSize: f32 = 2.0;
     const outlineColor = [4]f32{ 1.0, 0.0, 0.0, 1.0 }; // Normalized RED color
-    const textureSize = rl.Vector2.init(@intToFloat(f32, texture.width), @intToFloat(f32, texture.height));
+    const textureSize = rl.Vector2{ .x = @as(f32, @floatFromInt(texture.width)), .y = @as(f32, @floatFromInt(texture.height)) };
 
     // Get shader locations
     const outlineSizeLoc = rl.getShaderLocation(shdrOutline, "outlineSize");
@@ -28,9 +28,9 @@ pub fn main() anyerror!void {
     const textureSizeLoc = rl.getShaderLocation(shdrOutline, "textureSize");
 
     // Set shader values (they can be changed later)
-    rl.setShaderValue(shdrOutline, outlineSizeLoc, &outlineSize, @enumToInt(rl.ShaderUniformDataType.shader_uniform_float));
-    rl.setShaderValue(shdrOutline, outlineColorLoc, &outlineColor, @enumToInt(rl.ShaderUniformDataType.shader_uniform_vec4));
-    rl.setShaderValue(shdrOutline, textureSizeLoc, &textureSize, @enumToInt(rl.ShaderUniformDataType.shader_uniform_vec2));
+    rl.SetShaderValue(shdrOutline, outlineSizeLoc, &outlineSize, @intFromEnum(rl.ShaderUniformDataType.SHADER_UNIFORM_FLOAT));
+    rl.SetShaderValue(shdrOutline, outlineColorLoc, &outlineColor, @intFromEnum(rl.ShaderUniformDataType.SHADER_UNIFORM_VEC4));
+    rl.SetShaderValue(shdrOutline, textureSizeLoc, &textureSize, @intFromEnum(rl.ShaderUniformDataType.SHADER_UNIFORM_VEC2));
 
     rl.setTargetFPS(60); // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
@@ -42,7 +42,7 @@ pub fn main() anyerror!void {
         outlineSize += rl.getMouseWheelMove();
         if (outlineSize < 1.0) outlineSize = 1.0;
 
-        rl.setShaderValue(shdrOutline, outlineSizeLoc, &outlineSize, @enumToInt(rl.ShaderUniformDataType.shader_uniform_float));
+        rl.SetShaderValue(shdrOutline, outlineSizeLoc, &outlineSize, @intFromEnum(rl.ShaderUniformDataType.SHADER_UNIFORM_FLOAT));
         //----------------------------------------------------------------------------------
 
         // Draw
@@ -59,7 +59,7 @@ pub fn main() anyerror!void {
 
         rl.drawText("Shader-based\ntexture\noutline", 10, 10, 20, rl.Color.gray);
 
-        rl.drawText(rl.textFormat("Outline size: %i px", .{@floatToInt(i32, outlineSize)}), 10, 120, 20, rl.Color.maroon);
+        rl.DrawText(rl.TextFormat("Outline size: %i px", @as(i32, @intFromFloat(outlineSize))), 10, 120, 20, rl.MAROON);
 
         rl.drawFPS(710, 10);
 

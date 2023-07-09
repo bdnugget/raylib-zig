@@ -123,7 +123,7 @@ def fix_enums(arg_name, arg_type, func_name):
                 arg_type = "GamepadButton"
             else:
                 arg_type = "MouseButton"
-        elif arg_name == "mode" and func_name == "SetCameraMode":
+        elif arg_name == "mode" and func_name == "UpdateCamera":
             arg_type = "CameraMode"
         elif arg_name == "gesture":
             arg_type = "Gesture"
@@ -147,14 +147,13 @@ def parse_header(header_name: str, output_file: str, ext_file: str, prefix: str,
     leftover = ""
 
     for line in header.readlines():
-
         if line.startswith("typedef struct"):
-            zig_types.add(line.split(' ')[2])
+            zig_types.add(line.split(" ")[2])
         elif line.startswith("typedef enum"):
             # don't trip the general typedef case
             pass
         elif line.startswith("typedef "):
-            zig_types.add(line.split(' ')[2].replace(';', '').strip())
+            zig_types.add(line.split(" ")[2].replace(";", "").strip())
 
         if not line.startswith(prefix):
             continue
@@ -171,7 +170,10 @@ def parse_header(header_name: str, output_file: str, ext_file: str, prefix: str,
         line = line.replace("  ", " ")
 
         # each (.*) is some variable value
-        result = re.search(prefix + "(.*) (.*)start_arg(.*)end_arg(.*)", line.replace("(", "start_arg").replace(")", "end_arg"))
+        result = re.search(
+            prefix + "(.*) (.*)start_arg(.*)end_arg(.*)",
+            line.replace("(", "start_arg").replace(")", "end_arg"),
+        )
 
         if result is None:
             leftover += line
@@ -236,23 +238,17 @@ def parse_header(header_name: str, output_file: str, ext_file: str, prefix: str,
 
         # Todo: ziggify return type
         zig_arguments = ", ".join(zig_arguments)
-        zig_call_args = ", ".join(zig_call_args)
+        zig_heads.append(
+            "pub extern fn "
+            + func_name
+            + "("
+            + zig_arguments
+            + ") "
+            + return_type
+            + ";"
+        )
 
-        if func_name in ["TextFormat", "LoadShader", "LoadShaderFromMemory"]:
-            continue
-        
-        zig_return = ziggify_type(func_name, return_type)
-        return_cast = make_return_cast(return_type, zig_return, f"cdef.{func_name}({zig_call_args})")
-
-        if return_cast:
-            zig_funcs.append(f"pub fn {zig_name}({zig_arguments}) {zig_return}" +
-                            " {\n    " +
-                            ("return " if zig_return != "void" else "") +
-                            return_cast + ";"
-                            "\n}")
-
-    prelude = open(args[0], mode="r").read()
-    ext_prelude = open(args[1], mode="r").read()
+    prelude = str()
 
     ext_header = open(ext_file, mode="w")
     print(ext_prelude, file=ext_header)
@@ -264,5 +260,12 @@ def parse_header(header_name: str, output_file: str, ext_file: str, prefix: str,
 
 
 if __name__ == "__main__":
-    parse_header("../raylib/src/raylib.h", "raylib-zig.zig", "raylib-zig-ext.zig", "RLAPI ", "preludes/raylib-zig-prelude.zig", "preludes/raylib-zig-ext-prelude.zig")
-    parse_header("../raylib/src/raymath.h", "raylib-zig-math.zig", "raylib-zig-math-ext.zig", "RMAPI ", "preludes/raylib-zig-math-prelude.zig", "preludes/raylib-zig-math-ext-prelude.zig")
+    parse_header(
+        "../raylib/src/raylib.h", "raylib-zig.zig", "RLAPI ", "raylib-zig-types.zig"
+    )
+    parse_header(
+        "../raylib/src/raymath.h",
+        "raylib-zig-math.zig",
+        "RMAPI ",
+        "raylib-zig-math-prelude.zig",
+    )
